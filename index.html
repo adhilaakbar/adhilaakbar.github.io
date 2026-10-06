@@ -3,12 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#12160f">
   <title>Adhila Akbar — Research Engineer</title>
   <meta name="description" content="Adhila Akbar is a research engineer in Los Angeles working on AI policy and making sure the benefits of technology reach everyone.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Mulish:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
   <header class="nav">
@@ -22,8 +23,10 @@
   </header>
 
   <main id="top">
+    <div class="stem-wrap" aria-hidden="true"><svg></svg></div>
+    <svg class="plant" aria-hidden="true"></svg>
     <section class="hero">
-      <p class="eyebrow">Hello, I'm</p>
+      <p class="eyebrow" data-root>Hello, I'm</p>
       <h1>Adhila Akbar</h1>
       <p class="lede">Research engineer in Los Angeles, CA. I use technology and creativity to work on the world's biggest problems, including AI policy.</p>
       <div class="actions">
@@ -33,7 +36,7 @@
     </section>
 
     <section id="about">
-      <h2>About</h2>
+      <h2 data-node="leaf">About</h2>
       <div class="cols">
         <p>I love learning about how the universe works, from astrophysics to philosophy and everything in between. I'm passionate about using technology and creativity to solve the world's biggest problems, including AI policy. Outside of work, I have many creative pursuits, including writing and photography.</p>
         <div>
@@ -47,12 +50,12 @@
     </section>
 
     <section id="work">
-      <h2>Work</h2>
+      <h2 data-node="leaf">Work</h2>
       <ol class="timeline">
         <li>
           <span class="when">2026 — Present</span>
           <div>
-            <h3>Research Engineer</h3>
+            <h3 data-node="leaf">Research Engineer</h3>
             <p class="org">PHD Ventures · Peter H. Diamandis</p>
             <p>Building the Abundance Index, which tracks humanity's progress and shows where the gaps remain, to inspire people to close them.</p>
           </div>
@@ -60,7 +63,7 @@
         <li>
           <span class="when">2025 — Present</span>
           <div>
-            <h3>Project Coordinator</h3>
+            <h3 data-node="leaf">Project Coordinator</h3>
             <p class="org">NAID Center · UCLA</p>
             <p>Working on the economic and educational sides of the AI transition. I lead research on AI transition financing: how institutions fund retraining and cushion communities exposed to AI-driven displacement. I also built a production AI research agent that turns CGE economic models into policy reports.</p>
             <p>Other work includes AI integration in UCLA courses, government advisory support, conference planning, and research on AI representation and access for minority communities.</p>
@@ -71,7 +74,7 @@
     </section>
 
     <section id="elsewhere">
-      <h2>Elsewhere</h2>
+      <h2 data-node="pair">Elsewhere</h2>
       <div class="grid">
         <a class="card" href="https://adhilaa.substack.com/" target="_blank" rel="noopener">
           <h3>Writing →</h3>
@@ -83,17 +86,23 @@
           <p>A collection of my photographs.</p>
           <span class="meta">VSCO</span>
         </a>
+        <a class="card" href="https://boxd.it/cmUTf" target="_blank" rel="noopener">
+          <h3>Films →</h3>
+          <p>What I've been watching, on Letterboxd.</p>
+          <span class="meta">Letterboxd</span>
+        </a>
       </div>
     </section>
 
     <section id="contact">
-      <h2>Contact</h2>
+      <h2 data-node="flower">Contact</h2>
       <p class="lede">Reach out to build, to solve, or just to wonder together.</p>
       <a class="email" href="mailto:adhilaakbar@gmail.com">adhilaakbar@gmail.com</a>
     </section>
+  <footer>© <span id="year"></span> Adhila Akbar</footer>
   </main>
 
-  <footer>© <span id="year"></span> Adhila Akbar</footer>
   <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+  <script src="plant.js?v=10"></script>
 </body>
 </html>
