@@ -1,258 +1,102 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Adhila Akbar</title>
-<meta name="description" content="Adhila Akbar — researcher in Los Angeles. Measurement, AI evaluation, writing, and photography.">
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&display=swap');
-
-  :root {
-    --forest: #3f4a38;
-    --moss: #5c6b50;
-    --sage: #8a9a7e;
-    --sage-soft: #aeb9a0;
-    --mist: #cfd6c4;
-    --cream: #f3f0e5;
-    --parchment: #ece8d9;
-    --ink-on-dark: #e9ecdf;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    background: var(--cream);
-    color: var(--forest);
-    font-family: 'Jost', 'Avenir Next', sans-serif;
-    font-weight: 300;
-    font-size: 17.5px;
-    line-height: 1.7;
-  }
-  .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
-
-  /* ---------- TOP NAV ---------- */
-  .topnav {
-    position: absolute; top: 0; left: 0; right: 0; z-index: 5;
-    max-width: 1100px; margin: 0 auto;
-    display: flex; justify-content: flex-end; align-items: center; gap: 26px;
-    padding: 26px 28px;
-  }
-  .topnav a {
-    color: var(--mist); text-decoration: none;
-    font-size: 14px; letter-spacing: 2px; text-transform: uppercase; font-weight: 400;
-    padding: 8px 2px; transition: color .15s;
-  }
-  .topnav a:hover, .topnav a:focus-visible { color: #fff; }
-  .topnav .contact-btn {
-    border: 1px solid var(--sage-soft); border-radius: 999px;
-    padding: 10px 24px; color: var(--ink-on-dark);
-    transition: background .15s, color .15s, border-color .15s;
-  }
-  .topnav .contact-btn:hover, .topnav .contact-btn:focus-visible {
-    background: var(--sage-soft); color: var(--forest); border-color: var(--sage-soft);
-  }
-
-  /* ---------- HERO ---------- */
-  .hero {
-    position: relative;
-    background: linear-gradient(160deg, var(--forest) 0%, var(--moss) 70%, #6d7c60 100%);
-    color: var(--ink-on-dark);
-    padding: 130px 28px 150px;
-    overflow: hidden;
-  }
-  .hero-inner { max-width: 780px; margin: 0 auto; position: relative; z-index: 2; }
-  .hero .kicker {
-    font-size: 13px; letter-spacing: 5px; text-transform: uppercase;
-    color: var(--sage-soft); font-weight: 400;
-  }
-  .hero h1 {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: clamp(58px, 10vw, 104px);
-    font-weight: 500; line-height: 1.02; letter-spacing: -1px;
-    margin-top: 18px; color: #f2f4e8;
-  }
-  .hero h1 em { font-style: italic; font-weight: 400; color: var(--mist); }
-  .hero .lede {
-    margin-top: 30px; max-width: 520px; font-size: 19px; color: #d3dac6;
-  }
-  .hero .lede em { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 21px; color: var(--mist); }
-
-  /* botanical line art */
-  .branch {
-    position: absolute; right: -60px; top: 40px; width: 480px; height: 480px;
-    color: rgba(233,236,223,.13); z-index: 1;
-  }
-  .branch-2 {
-    position: absolute; left: -80px; bottom: -90px; width: 380px; height: 380px;
-    color: rgba(233,236,223,.09); transform: rotate(140deg); z-index: 1;
-  }
-
-  /* wave divider */
-  .wave { display: block; width: 100%; height: 70px; margin-top: -69px; position: relative; z-index: 3; }
-
-  /* ---------- BODY SECTIONS ---------- */
-  .section { max-width: 780px; margin: 0 auto; padding: 90px 28px 0; }
-  .label {
-    display: flex; align-items: center; gap: 14px;
-    font-size: 13px; letter-spacing: 4px; text-transform: uppercase;
-    color: var(--moss); font-weight: 400; margin-bottom: 34px;
-  }
-  .label::after { content: ""; flex: 1; height: 1px; background: var(--mist); }
-
-  .about { font-family: 'Cormorant Garamond', Georgia, serif; font-size: clamp(24px, 3.4vw, 30px); line-height: 1.5; font-weight: 400; color: #46523e; }
-  .about em { color: var(--moss); }
-
-  /* work cards */
-  .jobs { display: grid; gap: 22px; }
-  .job {
-    background: linear-gradient(135deg, #f9f7ee 0%, var(--parchment) 100%);
-    border: 1px solid var(--mist);
-    border-radius: 20px;
-    padding: 34px 36px;
-    position: relative; overflow: hidden;
-  }
-  .job::before {
-    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 5px;
-    background: linear-gradient(90deg, var(--moss), var(--sage-soft));
-  }
-  .job .when {
-    font-size: 12.5px; letter-spacing: 3px; text-transform: uppercase;
-    color: var(--sage); font-weight: 500;
-  }
-  .job h3 {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 28px; font-weight: 600; margin-top: 8px; color: var(--forest);
-  }
-  .job .org { display: block; font-family: 'Jost', sans-serif; font-size: 15px; font-weight: 400; color: var(--moss); margin-top: 2px; letter-spacing: .5px; }
-  .job p { margin-top: 14px; font-size: 16px; color: #5a6650; font-weight: 300; }
-
-  /* elsewhere tiles */
-  .tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
-  .tile {
-    display: block; text-decoration: none;
-    border-radius: 20px; padding: 34px 30px;
-    transition: transform .2s ease, box-shadow .2s ease;
-  }
-  .tile:hover, .tile:focus-visible { transform: translateY(-4px); box-shadow: 0 14px 32px rgba(63,74,56,.18); }
-  .tile h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 30px; font-weight: 600; }
-  .tile span { display: inline-block; margin-top: 8px; font-size: 14px; letter-spacing: 2.5px; text-transform: uppercase; font-weight: 400; }
-  .tile.write { background: var(--forest); color: var(--ink-on-dark); }
-  .tile.write span { color: var(--sage-soft); }
-  .tile.photo { background: var(--sage); color: #2f382a; }
-  .tile.photo span { color: #3f4a38; }
-  .tile.gh { background: var(--parchment); border: 1px solid var(--mist); color: var(--forest); }
-  .tile.gh span { color: var(--moss); }
-  .tile.li { background: var(--mist); color: var(--forest); }
-  .tile.li span { color: var(--moss); }
-
-  /* footer */
-  footer {
-    margin-top: 100px;
-    background: var(--forest); color: var(--sage-soft);
-    padding: 60px 28px;
-  }
-  .foot-inner { max-width: 780px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
-  footer .sig { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 26px; font-style: italic; color: var(--ink-on-dark); }
-  footer a { color: var(--mist); text-decoration: none; border-bottom: 1px solid rgba(207,214,196,.3); }
-  footer a:hover { border-bottom-color: var(--mist); }
-  footer .meta { font-size: 13.5px; letter-spacing: 1px; }
-
-  a:focus-visible { outline: 2px solid var(--sage-soft); outline-offset: 3px; }
-
-  /* gentle entrance */
-  @media (prefers-reduced-motion: no-preference) {
-    .job, .tile, .about { animation: rise .8s ease both; }
-    .job:nth-child(2) { animation-delay: .12s; }
-    .tile:nth-child(2) { animation-delay: .08s; }
-    .tile:nth-child(3) { animation-delay: .16s; }
-    .tile:nth-child(4) { animation-delay: .24s; }
-    @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
-  }
-  @media (max-width: 640px) {
-    .hero { padding: 90px 24px 120px; }
-    .tiles { grid-template-columns: 1fr; }
-    .job { padding: 28px 26px; }
-  }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Adhila Akbar — Research Engineer</title>
+  <meta name="description" content="Adhila Akbar is a research engineer in Los Angeles working on measuring technological progress and the AI transition.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <header class="nav">
+    <a href="#top" class="logo">AA</a>
+    <nav>
+      <a href="#about">About</a>
+      <a href="#work">Work</a>
+      <a href="#elsewhere">Elsewhere</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
 
-<header class="hero">
-  <nav class="topnav">
-    <a href="https://github.com/adhilaakbar">GitHub</a>
-    <a href="https://linkedin.com/in/adhila-akbar">LinkedIn</a>
-    <a class="contact-btn" href="mailto:adhilaakbar@gmail.com">Contact</a>
-  </nav>
-  <svg class="branch" viewBox="0 0 200 200" fill="currentColor" stroke="none" aria-hidden="true">
-    <path d="M30 190 C 60 130, 95 85, 172 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-    <!-- leaves: closed teardrop shapes along the stem -->
-    <path d="M55 158 C 40 148, 34 132, 38 118 C 52 122, 62 136, 62 152 C 62 156, 59 159, 55 158 Z"/>
-    <path d="M68 142 C 84 146, 98 140, 106 128 C 94 120, 78 122, 68 132 C 65 136, 65 140, 68 142 Z"/>
-    <path d="M85 122 C 70 112, 64 96, 68 82 C 82 86, 92 100, 92 116 C 92 120, 89 123, 85 122 Z"/>
-    <path d="M98 106 C 114 110, 128 104, 136 92 C 124 84, 108 86, 98 96 C 95 100, 95 104, 98 106 Z"/>
-    <path d="M116 84 C 101 74, 95 58, 99 44 C 113 48, 123 62, 123 78 C 123 82, 120 85, 116 84 Z"/>
-    <path d="M130 66 C 146 70, 160 64, 168 52 C 156 44, 140 46, 130 56 C 127 60, 127 64, 130 66 Z"/>
-    <path d="M148 44 C 136 34, 132 20, 136 8 C 148 12, 156 24, 155 38 C 155 42, 152 45, 148 44 Z"/>
-  </svg>
-  <svg class="branch-2" viewBox="0 0 200 200" fill="currentColor" stroke="none" aria-hidden="true">
-    <path d="M30 190 C 60 130, 95 85, 172 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-    <path d="M55 158 C 40 148, 34 132, 38 118 C 52 122, 62 136, 62 152 C 62 156, 59 159, 55 158 Z"/>
-    <path d="M68 142 C 84 146, 98 140, 106 128 C 94 120, 78 122, 68 132 C 65 136, 65 140, 68 142 Z"/>
-    <path d="M85 122 C 70 112, 64 96, 68 82 C 82 86, 92 100, 92 116 C 92 120, 89 123, 85 122 Z"/>
-    <path d="M98 106 C 114 110, 128 104, 136 92 C 124 84, 108 86, 98 96 C 95 100, 95 104, 98 106 Z"/>
-    <path d="M116 84 C 101 74, 95 58, 99 44 C 113 48, 123 62, 123 78 C 123 82, 120 85, 116 84 Z"/>
-  </svg>
-  <div class="hero-inner">
-    <div class="kicker">Researcher · Los Angeles</div>
-    <h1>Adhila<br><em>Akbar</em></h1>
-    <p class="lede">Using my <em>curiosity</em> about how the world works to help solve its biggest problems.</p>
-  </div>
-</header>
-<svg class="wave" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true">
-  <path d="M0,40 C240,70 480,0 720,20 C960,40 1200,70 1440,30 L1440,70 L0,70 Z" fill="#f3f0e5"/>
-</svg>
+  <main id="top">
+    <section class="hero">
+      <p class="eyebrow">Hi, I'm</p>
+      <h1>Adhila Akbar</h1>
+      <p class="lede">Research engineer in Los Angeles, CA. I use technology and creativity to work on the world's biggest problems, including AI safety and policy.</p>
+      <div class="actions">
+        <a class="btn" href="https://www.linkedin.com/in/adhila-akbar" target="_blank" rel="noopener">Connect on LinkedIn</a>
+        <a class="btn ghost" href="#work">See my work</a>
+      </div>
+    </section>
 
-<section class="section">
-  <div class="label">About</div>
-  <p class="about">I love learning about how the universe works — from <em>astrophysics to philosophy</em> and everything in between. I am passionate about using technology and creativity to solve the world's biggest problems, including AI safety and policy. I have many other creative pursuits including <em>writing and photography</em>.</p>
-</section>
+    <section id="about">
+      <h2>About</h2>
+      <div class="cols">
+        <p>I love learning about how the universe works, from astrophysics to philosophy and everything in between. I'm passionate about using technology and creativity to solve the world's biggest problems, including AI safety and policy. Outside of work, I have many creative pursuits, including writing and photography.</p>
+        <div>
+          <h3>Interests</h3>
+          <ul class="tags">
+            <li>AI safety</li><li>AI policy</li><li>Astrophysics</li>
+            <li>Philosophy</li><li>Writing</li><li>Photography</li>
+          </ul>
+        </div>
+      </div>
+    </section>
 
-<section class="section">
-  <div class="label">Work</div>
-  <div class="jobs">
-    <div class="job">
-      <div class="when">2026 — Present</div>
-      <h3>Research Engineer<span class="org">PHD Ventures · Peter H. Diamandis</span></h3>
-      <p>Designing measurement frameworks for tracking global technology and human progress — gate-based scoring, evidence-admission standards, and versioned registries so every number traces to a source.</p>
-    </div>
-    <div class="job">
-      <div class="when">2025 — Present</div>
-      <h3>Project Coordinator<span class="org">NAID Center · UCLA</span></h3>
-      <p>Working on the AI transition — economic and educational. I lead research on AI transition financing (how institutions fund retraining and cushion communities exposed to AI-driven displacement) and built a production AI research agent that turns CGE economic models into policy reports. Also: AI integration in UCLA courses, government advisory support, conference planning, and research on AI representation and access for minority communities.</p>
-    </div>
-  </div>
-</section>
+    <section id="work">
+      <h2>Work</h2>
+      <ol class="timeline">
+        <li>
+          <span class="when">2026 — Present</span>
+          <div>
+            <h3>Research Engineer</h3>
+            <p class="org">PHD Ventures · Peter H. Diamandis</p>
+            <p>Designing measurement frameworks for tracking global technology and human progress: gate-based scoring, evidence-admission standards, and versioned registries so every number traces to a source.</p>
+          </div>
+        </li>
+        <li>
+          <span class="when">2025 — Present</span>
+          <div>
+            <h3>Project Coordinator</h3>
+            <p class="org">NAID Center · UCLA</p>
+            <p>Working on the economic and educational sides of the AI transition. I lead research on AI transition financing: how institutions fund retraining and cushion communities exposed to AI-driven displacement. I also built a production AI research agent that turns CGE economic models into policy reports.</p>
+            <p>Other work includes AI integration in UCLA courses, government advisory support, conference planning, and research on AI representation and access for minority communities.</p>
+          </div>
+        </li>
+      </ol>
+    </section>
 
-<section class="section">
-  <div class="label">Creative Pursuits</div>
-  <div class="tiles">
-    <a class="tile write" href="https://adhilaa.substack.com/">
-      <h3>Writing</h3>
-      <span>Substack ↗</span>
-    </a>
-    <a class="tile photo" href="https://adhilaakbar.vsco.site/">
-      <h3>Photography</h3>
-      <span>VSCO ↗</span>
-    </a>
-  </div>
-</section>
+    <section id="elsewhere">
+      <h2>Elsewhere</h2>
+      <div class="grid">
+        <a class="card" href="https://adhilaa.substack.com/" target="_blank" rel="noopener">
+          <h3>Writing →</h3>
+          <p>Essays and ideas on Substack.</p>
+          <span class="meta">Substack</span>
+        </a>
+        <a class="card" href="https://adhilaakbar.vsco.site/" target="_blank" rel="noopener">
+          <h3>Photography →</h3>
+          <p>A collection of my photographs.</p>
+          <span class="meta">VSCO</span>
+        </a>
+      </div>
+    </section>
 
-<footer>
-  <div class="foot-inner">
-    <div class="sig">Adhila Akbar</div>
-    <div class="meta">B.S. Astrophysics, UCLA · <a href="mailto:adhilaakbar@gmail.com">adhilaakbar@gmail.com</a></div>
-  </div>
-</footer>
+    <section id="contact">
+      <h2>Contact</h2>
+      <p class="lede">Open to conversations about AI safety, policy, and measuring progress. The best way to reach me is LinkedIn.</p>
+      <ul class="links">
+        <li><a href="https://www.linkedin.com/in/adhila-akbar" target="_blank" rel="noopener">LinkedIn</a></li>
+        <li><a href="https://adhilaa.substack.com/" target="_blank" rel="noopener">Substack</a></li>
+        <li><a href="https://adhilaakbar.vsco.site/" target="_blank" rel="noopener">Photography</a></li>
+      </ul>
+    </section>
+  </main>
 
+  <footer>© <span id="year"></span> Adhila Akbar</footer>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
 </html>

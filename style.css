@@ -1,0 +1,108 @@
+/* Sage palette */
+:root {
+  --bg: #f5f4ec;
+  --text: #2f3a2b;
+  --muted: #6b7563;
+  --line: #dde1d2;
+  --accent: #5c6b50;
+  --card: #fbfaf4;
+  --tag: #e6eadb;
+  --btn: #3f4a38;
+  --btn-text: #f5f4ec;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161a14;
+    --text: #e6eadc;
+    --muted: #9ba68f;
+    --line: #2b3227;
+    --accent: #aeb9a0;
+    --card: #1c2119;
+    --tag: #232a1f;
+    --btn: #aeb9a0;
+    --btn-text: #161a14;
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 17px/1.65 Inter, system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+
+.nav {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; justify-content: space-between; align-items: center;
+  max-width: 880px; margin: 0 auto; padding: 18px 24px;
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  backdrop-filter: blur(8px);
+}
+.logo { font-weight: 600; text-decoration: none; letter-spacing: .02em; }
+.nav nav { display: flex; gap: 22px; }
+.nav nav a { text-decoration: none; color: var(--muted); font-size: 15px; }
+.nav nav a:hover { color: var(--text); }
+
+main { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+section { padding: 72px 0; border-top: 1px solid var(--line); }
+section.hero { border-top: 0; padding: 96px 0 88px; }
+
+.eyebrow { color: var(--muted); margin: 0 0 4px; }
+h1 { font-size: clamp(40px, 7vw, 64px); line-height: 1.05; margin: 0 0 20px; font-weight: 600; letter-spacing: -.02em; }
+h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); font-weight: 500; margin: 0 0 32px; }
+h3 { font-size: 17px; font-weight: 600; margin: 0 0 6px; }
+.lede { font-size: 20px; color: var(--muted); max-width: 36ch; margin: 0; }
+
+.actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 36px; }
+.btn {
+  display: inline-block; padding: 11px 20px; border-radius: 8px;
+  background: var(--btn); color: var(--btn-text); text-decoration: none; font-weight: 500; font-size: 15px;
+}
+.btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+.btn:hover { opacity: .85; }
+
+.cols { display: grid; grid-template-columns: 1.4fr 1fr; gap: 48px; }
+.cols > p { margin: 0; }
+.tags { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.tags li { background: var(--tag); border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-size: 14px; color: var(--muted); }
+
+.timeline { list-style: none; padding: 0; margin: 0; display: grid; gap: 36px; }
+.timeline li { display: grid; grid-template-columns: 160px 1fr; gap: 24px; }
+.when { color: var(--muted); font-size: 15px; padding-top: 1px; }
+.timeline p { margin: 0; color: var(--muted); }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.card {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 22px; border: 1px solid var(--line); border-radius: 12px;
+  background: var(--card); text-decoration: none; transition: border-color .15s, transform .15s;
+}
+.card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.card p { margin: 0 0 12px; color: var(--muted); font-size: 15px; }
+.meta { margin-top: auto; font-size: 13px; color: var(--muted); }
+
+.links { list-style: none; padding: 0; margin: 28px 0 0; display: flex; gap: 24px; flex-wrap: wrap; }
+.links a { color: var(--accent); text-decoration: none; font-weight: 500; }
+.links a:hover { text-decoration: underline; }
+
+footer { max-width: 880px; margin: 0 auto; padding: 32px 24px 48px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
+
+@media (max-width: 640px) {
+  .nav nav { gap: 14px; }
+  .nav nav a { font-size: 14px; }
+  section { padding: 56px 0; }
+  section.hero { padding: 64px 0; }
+  .cols { grid-template-columns: 1fr; gap: 32px; }
+  .timeline li { grid-template-columns: 1fr; gap: 4px; }
+}
+
+.timeline .org { color: var(--text); opacity: .8; font-size: 15px; margin: -2px 0 8px; }
+.timeline p + p { margin-top: 10px; }
+
+.hero h1 { color: var(--text); }
+.eyebrow { color: var(--accent); font-weight: 500; }
+.timeline .org { color: var(--accent); opacity: 1; }
+::selection { background: var(--tag); }
