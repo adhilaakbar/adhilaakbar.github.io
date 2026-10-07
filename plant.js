@@ -538,7 +538,10 @@
     const tip = reduce ? Infinity : scrollY + innerHeight * 0.72 - mTop;
     wrap.style.height = (y1 + 20) + 'px';   // the stem is always fully there
     nodes.forEach((n) => n.el.classList.toggle('grown', tip >= n.y));
-    pond.classList.toggle('grown', tip >= y1 - 10);
+    // The pond fills in once its shoreline is well into view, which works on
+    // any screen height even though little page remains below it.
+    const pondTop = mTop + pondY;
+    pond.classList.toggle('grown', reduce || scrollY + innerHeight * .85 >= pondTop);
   }
 
   let raf = 0;
