@@ -185,4 +185,6 @@ body { position: relative; }
 @media (max-width: 640px) {
   main { padding-left: 20px; padding-right: 20px; }
   .stem-wrap, .plant, .canopy { display: none; }   /* no vines on phones */
+  .pond .water { clip-path: none; opacity: 0; transition: opacity 1.4s ease; }
+  .pond.grown .water { opacity: 1; }
 }

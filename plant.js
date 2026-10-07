@@ -204,6 +204,9 @@
     };
     const bend = wander(5, 80, 200, narrow ? 5 : 11, .4), kink = wander(9, 18, 40, 1.6, 0);
     const xOf = (y) => x0 + bend(y - y0) + kink(y - y0);
+    // Phones get the same scene without the brush-texture filter, which some
+    // mobile browsers (notably Safari) fail to draw over large areas.
+    const FW = narrow ? '' : ' filter="url(#paint-water)"', FP = narrow ? '' : ' filter="url(#paint)"';
     // Sky geometry, in page coordinates.
     const hero = document.querySelector('.hero');
     const heroBottom = hero.getBoundingClientRect().bottom + scrollY;
@@ -347,8 +350,8 @@
         sun += st(`M${(xx - len / 2).toFixed(0)} ${yy.toFixed(0)} h ${len.toFixed(0)}`, R2() < .5 ? '#f8d08a' : '#f0a271',
           (2 + R2() * 4).toFixed(1), `opacity="${(.35 + R2() * .4).toFixed(2)}"`);
       }
-      out.push(`<g mask="url(#sky-mask)"><g filter="url(#paint-water)">${paint.join('')}</g>` +
-        `<g filter="url(#paint-water)">${sun}</g><g class="sun">${disc}${disc2}</g>` +
+      out.push(`<g mask="url(#sky-mask)"><g${FW}>${paint.join('')}</g>` +
+        `<g${FW}>${sun}</g><g class="sun">${disc}${disc2}</g>` +
         `<rect width="${PW}" height="${SH}" fill="url(#sky-shade)"/></g>`);
       sky.setAttribute('width', PW);
       sky.setAttribute('height', SH);
@@ -357,7 +360,9 @@
     }
 
     // ---- The tree: a bough with side branches, leaves and hanging vines ----
-    {
+    // (not shown on phones)
+    canopy.innerHTML = '';
+    if (!narrow) {
       const R3 = rng(33), bark = [], leaves = [], vines = [];
       const hero = document.querySelector('.hero');
       // Measure where the words actually sit, not the full width of each block.
@@ -504,7 +509,7 @@
     }
     waterSvg.setAttribute('width', PW);
     waterSvg.setAttribute('height', PH);
-    waterSvg.innerHTML = `<g filter="url(#paint-water)">${water.join('')}</g>`;
+    waterSvg.innerHTML = `<g${FW}>${water.join('')}</g>`;
 
     // Pads, lilies and buds floating across, appearing outward from the vine.
     const floats = [];
@@ -520,7 +525,7 @@
       else if (kind < .55) inner += `<g transform="translate(${(r * .2).toFixed(0)} -2) scale(${(r / 70).toFixed(2)})">${bud()}</g>`;
       const delay = (.4 + Math.hypot(X - ex, Y - ey) / PW * 2.2).toFixed(2);
       floats.push(`<g class="node" style="transform-origin:${X.toFixed(0)}px ${Y.toFixed(0)}px;transition-delay:${delay}s">` +
-        `<g filter="url(#paint)" transform="translate(${X.toFixed(0)} ${Y.toFixed(0)})">${inner}</g></g>`);
+        `<g${FP} transform="translate(${X.toFixed(0)} ${Y.toFixed(0)})">${inner}</g></g>`);
     }
     floatSvg.setAttribute('width', PW);
     floatSvg.setAttribute('height', PH);
