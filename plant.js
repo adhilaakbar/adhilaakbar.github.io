@@ -1,19 +1,16 @@
-// Paints the page in an oil-painting style: a sunrise sky, a vine that winds
-// down the left from the top as you scroll (opening leaves and buds at each
-// marked section), and a water-lily pond at the bottom.
+// Paints the page in an oil-painting style: a sunrise sky, a vine down the left
+// whose leaves and buds open as you scroll to each section, and a water-lily
+// pond at the bottom.
 (function () {
   const main = document.querySelector('main');
   const wrap = document.querySelector('.stem-wrap');
   const stemSvg = wrap.querySelector('svg');
   const svg = document.querySelector('.plant');
-  const wrapR = wrap.cloneNode(true);
-  wrapR.classList.add('stem-right');
-  main.insertBefore(wrapR, wrap.nextSibling);
-  const stemSvgR = wrapR.querySelector('svg');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const C = {
     stem: '#3f5530', stemHi: '#6f8a4c',
+    bark: ['#33241a', '#56402f', '#7a5c42', '#a2825f'], vine: '#5e5d3a',
     leaf: ['#263c22', '#45632f', '#6f8d4b', '#a7bd7c'],
     white: '#eef0ea', cream: '#f6efe0', blue: '#a9c0dc', blue2: '#6688b4',
     pink: '#e6b3c1', pink2: '#c47d94', ochre: '#c9975a', yellow: '#e4c04a',
@@ -92,8 +89,6 @@
     return r.top - m.top + r.height / 2;
   };
 
-  // A small curling tendril.
-  const tendril = () => st('M0 0 C 10 -4, 20 2, 18 12 C 16 20, 6 19, 6 12 C 6 7, 11 6, 12 10', C.stemHi, 1.6);
 
 
   const pond = document.createElement('div');
@@ -118,6 +113,46 @@
     p(`M0 0 L ${r * .8} ${r * .14} A ${r * .85} ${r * .85} 0 0 1 ${-r * .7} ${r * .4} Z`, C.leaf[tone + 1], 'opacity=".75"') +
     st(`M0 0 L ${-r * .7} ${-r * .3} M0 0 L ${-r * .5} ${r * .6} M0 0 L ${r * .3} ${r * .75}`, C.leaf[3], 1.6, 'opacity=".45"') +
     `</g>`;
+
+  const canopy = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  canopy.setAttribute('class', 'canopy');
+  canopy.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(canopy);
+
+  // A small five-petalled blossom, lilac or gold.
+  const blossom = (gold) => {
+    const c1 = gold ? '#efc96a' : '#c3a6dc', c2 = gold ? '#f7e2a0' : '#e2d2f0';
+    let out = '';
+    for (let i = 0; i < 5; i++) {
+      out += p('M0 0 C -3 -3, -3 -8, 0 -10 C 3 -8, 3 -3, 0 0Z', i % 2 ? c1 : c2, `transform="rotate(${i * 72})"`);
+    }
+    return out + `<circle r="1.8" fill="${gold ? '#c98a3a' : '#f4e3a1'}"/>`;
+  };
+
+  // A large layered bloom for section headings: outer petals, a paler inner
+  // ring, and a stamen-dotted centre.
+  const BLOOMS = [
+    ['#9c7cc4', '#c3a6dc', '#ece2f6', '#f2d27a'],   // lilac
+    ['#d99a3a', '#efc96a', '#fbe9b4', '#a8642a'],   // gold
+    ['#6688b4', '#a9c0dc', '#f3f5f8', '#e4c04a'],   // white and blue
+    ['#c47d94', '#e6b3c1', '#fbe8ee', '#f2d27a'],   // pink
+  ];
+  const bigBloom = ([outer, mid, inner, heart]) => {
+    let out = '';
+    for (let i = 0; i < 6; i++) {
+      out += p('M0 0 C -9 -8, -10 -26, 0 -34 C 10 -26, 9 -8, 0 0Z', i % 2 ? outer : mid, `transform="rotate(${i * 60})"`);
+    }
+    for (let i = 0; i < 6; i++) {
+      out += p('M0 0 C -6 -6, -6 -18, 0 -22 C 6 -18, 6 -6, 0 0Z', inner, `transform="rotate(${i * 60 + 30})" opacity=".9"`);
+      out += st('M0 -4 L0 -16', mid, 1, `transform="rotate(${i * 60 + 30})" opacity=".6"`);
+    }
+    out += `<circle r="6" fill="${heart}"/>`;
+    for (let i = 0; i < 8; i++) {
+      const a = i / 8 * Math.PI * 2;
+      out += `<circle cx="${(Math.cos(a) * 8).toFixed(1)}" cy="${(Math.sin(a) * 8).toFixed(1)}" r="1.3" fill="${heart}" opacity=".9"/>`;
+    }
+    return out;
+  };
 
   const sky = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   sky.setAttribute('class', 'sky');
@@ -145,131 +180,92 @@
   function build() {
     const narrow = innerWidth <= 640;
     const x0 = narrow ? 30 : 82, s = narrow ? 0.6 : 1.3;
-    const A = narrow ? 11 : 24;
     const H = main.scrollHeight, W = main.offsetWidth;
     const PW = document.documentElement.clientWidth;
     const mRect = main.getBoundingClientRect();
     const mLeft = mRect.left + scrollX, mTop = mRect.top + scrollY;
 
     // Vertical vine: two overlapping waves so the curve never feels regular.
-    const xOf = (y) => {
-      const t = y - y0;
-      return x0 + A * Math.sin(t / 260 * Math.PI * 2) + A * 0.35 * Math.sin(t / 97 + 1.3);
+    // The stem wanders like real wood: irregular bends at uneven intervals,
+    // plus small kinks, joined with a smooth Catmull-Rom curve.
+    const wander = (seed, stepMin, stepMax, amp, keep) => {
+      const r = rng(seed), ys = [0], xs = [0];
+      while (ys[ys.length - 1] < H + 800) {
+        ys.push(ys[ys.length - 1] + stepMin + r() * (stepMax - stepMin));
+        xs.push(Math.max(-amp, Math.min(amp, xs[xs.length - 1] * keep + (r() - .5) * 2 * amp)));
+      }
+      return (t) => {
+        let i = 1;
+        while (i < ys.length - 2 && ys[i] < t) i++;
+        const p0 = xs[i - 2] ?? xs[0], p1 = xs[i - 1], p2 = xs[i], p3 = xs[i + 1];
+        const u = Math.max(0, Math.min(1, (t - ys[i - 1]) / (ys[i] - ys[i - 1])));
+        return .5 * (2 * p1 + (-p0 + p2) * u + (2 * p0 - 5 * p1 + 4 * p2 - p3) * u * u + (-p0 + 3 * p1 - 3 * p2 + p3) * u * u * u);
+      };
     };
+    const bend = wander(5, 80, 200, narrow ? 5 : 11, .4), kink = wander(9, 18, 40, 1.6, 0);
+    const xOf = (y) => x0 + bend(y - y0) + kink(y - y0);
     // Sky geometry, in page coordinates.
     const hero = document.querySelector('.hero');
     const heroBottom = hero.getBoundingClientRect().bottom + scrollY;
     const SH = Math.round(heroBottom);   // texture stops at the About line
     const horizon = SH * .8, sunX = PW * (narrow ? .9 : .76), sunR = narrow ? 26 : 40;
-    y0 = -12;                       // the vine enters from the very top
-    const GR = narrow ? 48 : 176;   // right edge of the vine's margin, in main coords
+    // A bough reaching in from a tree just off the top-left of the page.
+    // Page coordinates. The main vine hangs from it.
+    const boughY = (X) => (narrow ? 56 : 66) + (narrow ? 30 : 58) * Math.sin(Math.PI * Math.min(1, Math.max(0, X / PW)) * .9) + 6 * Math.sin(X / 90);
+    const boughW = (X) => Math.max(6, (narrow ? 20 : 34) * (1 - .78 * Math.max(0, X) / PW));
+    y0 = boughY(mLeft + x0) - mTop;
     const marks = [...document.querySelectorAll('[data-node]')];
     const PH = narrow ? 230 : 320;
     document.body.style.paddingBottom = PH + 'px';
     pondY = H;                      // pond begins where main ends
     y1 = H + (narrow ? 50 : 70);    // the vine dips into the water
 
-    // ---- Vertical stem ----
+    // ---- The long vine: one of the canopy's thin vines, carried down the page ----
     let d = '';
-    for (let y = y0; y <= y1; y += 8) d += (d ? ' L' : 'M') + `${xOf(y).toFixed(1)} ${y.toFixed(1)}`;
+    for (let y = y0; y <= y1; y += 6) d += (d ? ' L' : 'M') + `${xOf(y).toFixed(1)} ${y.toFixed(1)}`;
     d += ` L${xOf(y1).toFixed(1)} ${y1.toFixed(1)}`;
     stemSvg.setAttribute('width', narrow ? 70 : 190);
     stemSvg.setAttribute('height', y1 + 40);
-    stemSvg.innerHTML = DEFS + `<g filter="url(#paint)">` +
-      st(d, C.stem, 6 * s + 1) +
-      st(d, C.stemHi, 2 * s + .4, `transform="translate(${1.4 * s} 0)" opacity=".85"`) + `</g>`;
+    stemSvg.innerHTML = DEFS + `<g filter="url(#paint)">${st(d, C.vine, 2.8)}</g>`;
 
+    // Leaves and blossoms along it, each opening as you scroll to it.
     const out = [];
     nodes = [];
+    const R4 = rng(44);
     const add = (y, ox, oy, inner) => {
       out.push(`<g class="node" style="transform-origin:${ox.toFixed(1)}px ${oy.toFixed(1)}px"><g filter="url(#paint)">${inner}</g></g>`);
       nodes.push(y);
     };
-    // Scale an ornament down so it stays inside the margin and off the text.
-    const fitL = (x, side, k, reach) => {
-      const room = side > 0 ? GR - x : x + mLeft - 4;
-      return Math.max(0.3, Math.min(k, room / (reach * s)));
-    };
-    const L = { xOf, fit: fitL };
-    const leafAt = (y, side, k, tilt, v = L) => {
-      const x = v.xOf(y);
-      k = v.fit(x, side, k, 90);
-      add(y, x, y, `<g transform="translate(${x} ${y}) scale(${side * s * k} ${s * k})">` +
-        st('M0 0 Q 14 -4 22 -16', C.stem, 3) +
-        `<g transform="translate(22 -16) rotate(${tilt})">${leaf()}</g></g>`);
-    };
-    const budAt = (y, side, k = 1, v = L) => {
-      const x = v.xOf(y);
-      k = v.fit(x, side, k, 68);
-      add(y, x, y, `<g transform="translate(${x} ${y}) scale(${side * s * k} ${s * k})">` +
-        st('M0 0 C 16 -2, 30 -12, 36 -32', C.stem, 3) +
-        `<g transform="translate(36 -32) rotate(18)">${bud()}</g>` +
-        `<g transform="translate(14 -4) rotate(-150) scale(-.55 .55)">${leaf()}</g></g>`);
-    };
-    const curlAt = (y, side, v = L) => {
-      const x = v.xOf(y);
-      add(y, x, y, `<g transform="translate(${x} ${y}) scale(${side * s} ${s})">${tendril()}</g>`);
-    };
+    const leafG = (x, y, ang, k) =>
+      `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${ang.toFixed(0)}) scale(${k.toFixed(2)})">${leaf()}</g>`;
+    const flowerG = (x, y, gold, k) =>
+      `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${k.toFixed(2)})">${blossom(gold)}</g>`;
 
-    // Each ornament opens toward whichever side of the bend has more room.
-    const roomy = (y) => (xOf(y) >= (narrow ? 28 : 96) ? -1 : 1);
-    const ys = [];
-    marks.forEach((m) => {
-      const y = yOf(m), type = m.dataset.node, side = roomy(y);
-      ys.push(y);
-      if (type === 'pair') {
-        leafAt(y, side, 1, -26);
-        budAt(y + 14 * s, -side);
-      } else if (type === 'flower' || m.tagName === 'H3') {
-        budAt(y, side);
-      } else {
-        leafAt(y, side, 1.05, -28);
+    let n = 0;
+    for (let y = y0 + 8; y < pondY - 10; y += 7 + R4() * 5) {
+      const x = xOf(y), side = n++ % 2 ? 1 : -1;
+      let g = leafG(x, y, side > 0 ? 30 + R4() * 45 : 150 - R4() * 45, .3 + R4() * .12);
+      if (R4() < .2) g += flowerG(x + side * 7, y + 3, R4() < .4, .75 + R4() * .3);
+      add(y, x, y, g);
+    }
+    // Section headings get one large bloom on the vine; job titles get a
+    // small cluster of blossoms with a drooping bud.
+    let bi = 0;
+    marks.forEach((m, i) => {
+      const y = yOf(m), x = xOf(y);
+      if (m.tagName === 'H2') {
+        // The bloom opens right on the vine, framed by a pair of leaves.
+        const g = leafG(x, y + 6, 40, .4) + leafG(x, y + 6, 140, .4) +
+          `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${narrow ? .55 : 1.3})">${bigBloom(BLOOMS[bi++ % BLOOMS.length])}</g>`;
+        add(y, x, y, g);
+        return;
       }
+      const gold = i % 2 === 1;
+      let g = '';
+      for (let q = 0; q < 5; q++) g += flowerG(x + (q - 2) * 6 + (R4() - .5) * 4, y + (q % 2) * 7 - 4, q % 3 === 0 ? !gold : gold, .9 + R4() * .25);
+      g += `<g transform="translate(${(x + 12).toFixed(1)} ${(y + 10).toFixed(1)}) rotate(160) scale(.42)">${bud()}</g>`;
+      add(y, x, y, g);
     });
-
-    // Filler leaves and tendrils so the vine feels alive between sections.
-    let k = 0;
-    for (let y = y0 + 90; y < pondY - 90; y += 105) {
-      if (ys.some((m) => Math.abs(m - y) < 65)) continue;
-      // Leaves sit on the outside of each bend; tendrils on the inside.
-      const bend = roomy(y);
-      if (k % 4 === 3) curlAt(y, -bend);
-      else leafAt(y, bend, 0.55 + (k % 3) * 0.09, -18 - (k % 3) * 8);
-      k++;
-    }
-
-    // ---- A second vine down the right margin (wider screens only) ----
-    stemSvgR.innerHTML = '';
-    if (!narrow) {
-      const RM = 140, cx = W - RM / 2, AR = 18;
-      const xOfR = (y) => cx + AR * Math.sin((y - y0) / 300 * Math.PI * 2 + 2.1) + AR * .35 * Math.sin((y - y0) / 83);
-      const R = {
-        xOf: xOfR,
-        fit: (x, side, k, reach) => {
-          const room = side > 0 ? PW - mLeft - x - 6 : x - (W - RM + 8);
-          return Math.max(0.3, Math.min(k, room / (reach * s)));
-        },
-      };
-      let dr = '';
-      for (let y = y0; y <= y1; y += 8) dr += (dr ? ' L' : 'M') + `${xOfR(y).toFixed(1)} ${y.toFixed(1)}`;
-      stemSvgR.setAttribute('width', W);
-      stemSvgR.setAttribute('height', y1 + 40);
-      stemSvgR.innerHTML = `<g filter="url(#paint)">` + st(dr, C.stem, 6 * s + 1) +
-        st(dr, C.stemHi, 2 * s + .4, `transform="translate(${1.4 * s} 0)" opacity=".85"`) + `</g>`;
-      const roomyR = (y) => (xOfR(y) >= cx ? -1 : 1);
-      marks.forEach((m) => {
-        const y = yOf(m) + 40;     // offset from the left vine so they don't mirror
-        if (m.tagName === 'H2') budAt(y, roomyR(y), 1, R);
-      });
-      let j = 0;
-      for (let y = y0 + 150; y < pondY - 90; y += 115) {
-        if (ys.some((m) => Math.abs(m + 40 - y) < 60)) continue;
-        const bend = roomyR(y);
-        if (j % 4 === 1) curlAt(y, -bend, R);
-        else leafAt(y, bend, 0.6 + (j % 3) * 0.1, -20 - (j % 3) * 7, R);
-        j++;
-      }
-    }
 
     svg.setAttribute('width', W);
     svg.setAttribute('height', H);
@@ -287,7 +283,7 @@
         ['#1d2340', pondTop], ['#141a30', pondTop + PH],
       ];
       document.documentElement.style.background =
-        `linear-gradient(to bottom, ${stops.map(([c, y]) => `${c} ${Math.round(y)}px`).join(', ')})`;
+        `#141a30 linear-gradient(to bottom, ${stops.map(([c, y]) => `${c} ${Math.round(y)}px`).join(', ')}) no-repeat top / 100% ${Math.round(pondTop + PH)}px`;
     }
 
     // ---- Sunrise sky behind the top of the page ----
@@ -360,6 +356,125 @@
       requestAnimationFrame(() => sky.classList.add('risen'));
     }
 
+    // ---- The tree: a bough with side branches, leaves and hanging vines ----
+    {
+      const R3 = rng(33), bark = [], leaves = [], vines = [];
+      const hero = document.querySelector('.hero');
+      // Measure where the words actually sit, not the full width of each block.
+      const textRect = (e) => { const r = document.createRange(); r.selectNodeContents(e); return r.getBoundingClientRect(); };
+      const tr = [...hero.querySelectorAll('.eyebrow, h1, .lede, .actions .btn')].map(textRect);
+      const textL = Math.min(...tr.map((r) => r.left)) + scrollX - 24;
+      const textR = Math.max(...tr.map((r) => r.right)) + scrollX + 24;
+      const textTop = Math.min(...tr.map((r) => r.top)) + scrollY - 18;
+      const maxLen = heroBottom - 60;
+      const mainX = mLeft + x0;
+
+      // A tapering limb drawn as a filled shape, with bark light and shadow.
+      const limb = (pts, w0, w1) => {
+        const L = [], Rt = [], n = pts.length;
+        pts.forEach((pt, i) => {
+          const a = pts[Math.max(0, i - 1)], b = pts[Math.min(n - 1, i + 1)];
+          let tx = b[0] - a[0], ty = b[1] - a[1]; const m = Math.hypot(tx, ty) || 1; tx /= m; ty /= m;
+          const w = (w0 + (w1 - w0) * i / (n - 1)) / 2;
+          L.push([pt[0] - ty * w, pt[1] + tx * w]); Rt.push([pt[0] + ty * w, pt[1] - tx * w]);
+        });
+        const f = (q) => q.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(' L');
+        const mid = 'M' + f(pts);
+        bark.push(p(`M${f(L)} L${f(Rt.slice().reverse())} Z`, C.bark[1]));
+        bark.push(st('M' + f(L), C.bark[0], Math.max(1.2, w0 * .22), 'opacity=".75"'));
+        bark.push(st('M' + f(Rt), C.bark[3], Math.max(.8, w0 * .12), 'opacity=".6"'));
+        // Bark streaks along the grain.
+        for (let i = 1; i < n - 3; i += 2 + Math.floor(R3() * 3)) {
+          const j = Math.min(n - 1, i + 2 + Math.floor(R3() * 3)), off = (R3() - .5) * (w0 + (w1 - w0) * i / n) * .5;
+          bark.push(st(`M${pts[i][0].toFixed(1)} ${(pts[i][1] + off).toFixed(1)} L${pts[j][0].toFixed(1)} ${(pts[j][1] + off).toFixed(1)}`,
+            R3() < .5 ? C.bark[0] : C.bark[2], .9 + R3(), 'opacity=".7"'));
+        }
+        return mid;
+      };
+      const leafy = (x, y, ang, k, delay) => leaves.push(
+        `<g class="node" style="transform-origin:${x.toFixed(0)}px ${y.toFixed(0)}px;transition-delay:${delay.toFixed(2)}s">` +
+        `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${ang.toFixed(0)}) scale(${k.toFixed(2)})">${leaf()}</g></g>`);
+      const flower = (x, y, gold, k, delay) => leaves.push(
+        `<g class="node" style="transform-origin:${x.toFixed(0)}px ${y.toFixed(0)}px;transition-delay:${delay.toFixed(2)}s">` +
+        `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${k.toFixed(2)})">${blossom(gold)}</g></g>`);
+
+      // Main bough.
+      const end = PW * (narrow ? 1.02 : .96), bough = [];
+      for (let X = -60; X <= end; X += 10) bough.push([X, boughY(X)]);
+      limb(bough, boughW(-60), 3);
+      const anchors = [];            // points vines can hang from
+      bough.forEach(([X, Y], i) => { if (i % 3 === 0 && X > 0) anchors.push([X, Y + boughW(X) * .35, boughW(X)]); });
+
+      // Side branches and twigs.
+      const forks = narrow ? [.2, .48, .75] : [.14, .3, .47, .63, .8, .92];
+      forks.forEach((f, k) => {
+        const X0 = PW * f, Y0 = boughY(X0), dir = k % 2 ? -1 : 1;
+        const len = (narrow ? 70 : 110) + R3() * (narrow ? 50 : 110);
+        const pts = [];
+        for (let t = 0; t <= 1.0001; t += .08) {
+          pts.push([X0 + len * t, Y0 + dir * len * (.12 + .3 * t * t) * t + 4 * Math.sin(t * 7 + k)]);
+        }
+        limb(pts, boughW(X0) * .6, 1.4);
+        pts.forEach(([x, y], i) => { if (i > 1 && i % 2 === 0) anchors.push([x, y, 3]); });
+        // Leaves crowd toward the tip.
+        pts.forEach(([x, y], i) => {
+          if (i < 3) return;
+          for (let q = 0; q < 3; q++) leafy(x, y, (q === 1 ? 30 : q ? 90 : -150) + (R3() - .5) * 80, .28 + R3() * .18, .2 + f * 1.2);
+          if (R3() < .2) flower(x, y + 6, R3() < .4, .8, .5 + f * 1.2);
+        });
+        const [tx, ty] = pts[pts.length - 1];
+        for (let q = 0; q < 5; q++) leafy(tx, ty, q * 72 + R3() * 30, .3 + R3() * .15, .3 + f * 1.2);
+        // A twig off the side branch.
+        const m = pts[Math.floor(pts.length * .5)], tw = [];
+        for (let t = 0; t <= 1.0001; t += .2) tw.push([m[0] + 30 * t, m[1] - dir * 22 * t]);
+        limb(tw, 2.4, .8);
+        for (let q = 0; q < 3; q++) leafy(tw[5][0], tw[5][1], -60 + q * 60 + (R3() - .5) * 30, .26 + R3() * .1, .4 + f * 1.2);
+      });
+      // Leaves along the bough itself.
+      bough.forEach(([X, Y], i) => {
+        if (X < 0) return;
+        leafy(X, Y + boughW(X) * .3, 40 + R3() * 100, .3 + R3() * .16, .2 + X / PW);
+        if (R3() < .5) leafy(X + 4, Y - boughW(X) * .35, -40 - R3() * 100, .26 + R3() * .14, .25 + X / PW);
+        if (R3() < .12) flower(X, Y + boughW(X) * .4 + 4, R3() < .4, .8, .6 + X / PW);
+      });
+
+      // Vines hanging from uneven points along the branches.
+      anchors.sort((a, b2) => a[0] - b2[0]);
+      let lastX = -999;
+      anchors.forEach(([ax, ay]) => {
+        if (ax - lastX < 18 + R3() * 34 || Math.abs(ax - mainX) < 30 || R3() < .12) return;
+        lastX = ax;
+        const overText = ax > textL && ax < textR;
+        const L = overText ? Math.max(24, Math.min(textTop - ay, 40 + R3() * 60))
+          : Math.min(maxLen - ay, 70 + R3() * (narrow ? 150 : 320));
+        if (L < 20) return;
+        const drift = (R3() - .5) * 26, sway = 3 + R3() * 5, ph = R3() * 6;
+        const xAt = (t) => ax + drift * (t / L) ** 2 + sway * Math.sin(t / 38 + ph) * (t / L);
+        let d = '';
+        for (let t = 0; t <= L; t += 5) d += (d ? ' L' : 'M') + `${xAt(t).toFixed(1)} ${(ay + t).toFixed(1)}`;
+        const delay = .5 + ax / PW * 1.2;
+        vines.push(st(d, C.vine, 2.6, `pathLength="1" class="draw dangle" style="transition-delay:${delay.toFixed(2)}s"`));
+        for (let t = 6; t < L - 3; t += 6 + R3() * 5) {
+          const x = xAt(t), y = ay + t, side = Math.round(t / 9) % 2 ? 1 : -1, shrink = 1 - .45 * t / L;
+          leafy(x, y, side > 0 ? 35 + R3() * 40 : 145 - R3() * 40, (.26 + R3() * .1) * shrink, delay + .3 + t / L * 1.3);
+          if (R3() < .22) flower(x + side * 6, y + 3, R3() < .4, .7 + R3() * .3, delay + .6 + t / L * 1.3);
+        }
+        const ex = xAt(L), ey = ay + L;
+        if (R3() < .8) {
+          const gold = R3() < .4;
+          [0, 1, 2].forEach((i) => flower(ex + (i - 1) * 5, ey + (i % 2) * 5, gold, .75 - i * .08, delay + 1.7));
+        } else {
+          leafy(ex, ey, 80 + (R3() - .5) * 30, .2, delay + 1.7);
+        }
+      });
+
+      canopy.setAttribute('width', PW);
+      canopy.setAttribute('height', Math.ceil(maxLen + 40));
+      canopy.innerHTML = `<g filter="url(#paint)">${vines.join('')}</g>` +
+        `<g class="bark" filter="url(#paint)">${bark.join('')}</g><g filter="url(#paint)">${leaves.join('')}</g>`;
+      requestAnimationFrame(() => canopy.classList.add('grown'));
+    }
+
     // ---- The pond ----
     const R = rng(7), ex = mLeft + xOf(y1), ey = y1 - pondY;
     const water = [];
@@ -421,7 +536,7 @@
   function update() {
     const mTop = main.getBoundingClientRect().top + scrollY;
     const tip = reduce ? Infinity : scrollY + innerHeight * 0.72 - mTop;
-    wrap.style.height = wrapR.style.height = Math.max(0, Math.min(tip, y1 + 20)) + 'px';
+    wrap.style.height = (y1 + 20) + 'px';   // the stem is always fully there
     nodes.forEach((n) => n.el.classList.toggle('grown', tip >= n.y));
     pond.classList.toggle('grown', tip >= y1 - 10);
   }
