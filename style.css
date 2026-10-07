@@ -16,18 +16,12 @@
   --sans: Mulish, system-ui, -apple-system, sans-serif;
 }
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; overflow-x: clip; }
+html { scroll-behavior: smooth; overflow-x: clip; background: #141a30; }
 body {
   margin: 0;
   color: var(--text);
   font: 300 17px/1.75 var(--sans);
   -webkit-font-smoothing: antialiased;
-  background:
-    radial-gradient(ellipse 70% 45% at 90% 5%, var(--bg-2), transparent 70%),
-    radial-gradient(ellipse 60% 50% at 5% 60%, var(--bg-3), transparent 70%),
-    radial-gradient(ellipse 70% 40% at 80% 100%, #1b2836, transparent 70%),
-    var(--bg);
-  background-attachment: fixed;
 }
 a { color: inherit; }
 ::selection { background: var(--tag); }
@@ -35,8 +29,8 @@ a { color: inherit; }
 .nav {
   position: sticky; top: 0; z-index: 10;
   display: flex; justify-content: space-between; align-items: center;
-  padding: 20px max(24px, calc((100% - 968px) / 2));
-  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  padding: 20px max(24px, calc((100% - 1114px) / 2));
+  background: color-mix(in srgb, #121a33 55%, transparent);
   backdrop-filter: blur(10px);
 }
 .logo { font: italic 500 24px/1 var(--serif); text-decoration: none; color: var(--accent); }
@@ -47,8 +41,8 @@ a { color: inherit; }
 }
 .nav nav a:hover { color: var(--accent); }
 
-main { max-width: 1016px; margin: 0 auto; padding: 0 24px 0 160px; position: relative; }
-main > section, main > footer { position: relative; z-index: 1; }
+main { max-width: 1162px; margin: 0 auto; padding: 0 140px 0 190px; position: relative; }
+main > section { position: relative; z-index: 1; }
 section { padding: 80px 0; border-top: 1px solid var(--line); position: relative; }
 section.hero { border-top: 0; padding: 136px 0 100px; }
 
@@ -125,10 +119,12 @@ h3 { font: 500 25px/1.25 var(--serif); margin: 0 0 4px; }
 }
 .email:hover { color: var(--text); }
 
-footer {
-  padding: 36px 0 56px;
-  color: var(--muted); font: italic 400 17px/1 var(--serif); border-top: 1px solid var(--line);
+body { position: relative; }
+.site-footer {
+  position: absolute; left: 0; right: 0; bottom: 14px; z-index: 3; text-align: center;
+  color: #e6e8f0; font: italic 400 17px/1 var(--serif); text-shadow: 0 1px 8px rgba(10, 20, 40, .9);
 }
+#contact { padding-bottom: 36px; }
 
 @media (max-width: 640px) {
   .nav nav { gap: 14px; }
@@ -142,12 +138,24 @@ footer {
 }
 
 /* ---------- Canvas texture ---------- */
-body::before {
-  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75 .9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .92 0 0 0 0 .9 0 0 0 0 .84 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
-  opacity: .16; mix-blend-mode: overlay;
-}
 .btn { box-shadow: inset 0 -2px 0 rgba(0,0,0,.15); }
+
+/* ---------- Sunset sections: dark ink while the background is light ---------- */
+#about, #work {
+  --text: #2b1d26; --muted: #4f3b42; --accent: #5b3424;
+  --line: rgba(43, 29, 38, .2); --sage: rgba(91, 52, 36, .45); --tag: rgba(91, 52, 36, .1);
+  color: var(--text);
+}
+#elsewhere { --surface: rgba(20, 16, 36, .28); --line: rgba(236, 231, 218, .16); }
+
+/* ---------- Painted sunrise sky ---------- */
+.sky { position: absolute; top: 0; left: 0; z-index: 0; pointer-events: none; opacity: 0; transition: opacity 1.6s ease; }
+.sky.risen { opacity: 1; }
+.sky .sun { transform: translateY(46px); transition: transform 4.5s cubic-bezier(.2,.7,.2,1) .3s; }
+.sky.risen .sun { transform: translateY(0); }
+.hero h1, .hero .lede, .hero .eyebrow { text-shadow: 0 1px 18px rgba(14, 16, 30, .55); }
+.hero .lede { color: #e6dfd2; }
+.hero .btn.ghost { background: rgba(18, 20, 42, .45); color: var(--text); border-color: rgba(236, 231, 218, .45); backdrop-filter: blur(4px); }
 
 /* ---------- Painted plant ---------- */
 .pond { position: absolute; left: 0; width: 100%; z-index: 0; pointer-events: none; }
@@ -160,19 +168,17 @@ body::before {
 .pond.grown .water { clip-path: circle(150% at var(--ex) var(--ey)); }
 .pond .node { transform: scale(.15); opacity: 0; transition: transform 1.2s cubic-bezier(.2,.8,.2,1), opacity .7s ease; }
 .pond.grown .node { transform: scale(1); opacity: 1; }
-.top-vine { position: absolute; top: 0; left: 0; z-index: 2; pointer-events: none; overflow: visible; }
-.top-vine .draw { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 2.4s cubic-bezier(.4,0,.2,1); }
-.top-vine.grown .draw { stroke-dashoffset: 0; }
-.stem-wrap { position: absolute; top: 0; left: 0; width: 160px; overflow: hidden; pointer-events: none; z-index: 0; }
+.stem-wrap { position: absolute; top: 0; left: 0; width: 190px; overflow: hidden; pointer-events: none; z-index: 0; }
 .stem-wrap svg { display: block; will-change: transform; }
+.stem-wrap.stem-right { width: 100%; }
 .plant { position: absolute; top: 0; left: 0; pointer-events: none; overflow: visible; z-index: 0; }
-.plant .node, .top-vine .node {
+.plant .node {
   transform: scale(.15); opacity: 0;
   transition: transform 1.3s cubic-bezier(.2,.8,.2,1), opacity .7s ease;
 }
-.plant .node.grown, .top-vine .node.grown { transform: scale(1); opacity: 1; }
+.plant .node.grown { transform: scale(1); opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
-  .plant .node, .top-vine .node, .top-vine .draw, .pond .water, .pond .node { transition: none; }
+  .plant .node, .pond .water, .pond .node, .sky, .sky .sun { transition: none; }
 }
 @media (max-width: 640px) {
   main { padding-left: 60px; padding-right: 20px; }
