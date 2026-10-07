@@ -1,6 +1,6 @@
-// Paints the page in an oil-painting style: a sunrise sky, a vine down the left
-// whose leaves and buds open as you scroll to each section, and a water-lily
-// pond at the bottom.
+// Paints the page in an oil-painting style: a sunrise sky, a tree canopy, a
+// vine that grows down the left as you scroll (leaves and blossoms opening
+// along it), and a water-lily pond at the bottom.
 (function () {
   const main = document.querySelector('main');
   const wrap = document.querySelector('.stem-wrap');
@@ -535,8 +535,12 @@
 
   function update() {
     const mTop = main.getBoundingClientRect().top + scrollY;
-    const tip = reduce ? Infinity : scrollY + innerHeight * 0.72 - mTop;
-    wrap.style.height = (y1 + 20) + 'px';   // the stem is always fully there
+    // The growing tip sits about 70% down the screen, easing to the very bottom
+    // as you near the end so the vine always reaches the pond.
+    const maxScroll = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    const f = .72 + .28 * Math.min(1, scrollY / maxScroll) ** 4;
+    const tip = reduce ? Infinity : scrollY + innerHeight * f - mTop;
+    wrap.style.height = Math.max(0, Math.min(tip, y1 + 20)) + 'px';
     nodes.forEach((n) => n.el.classList.toggle('grown', tip >= n.y));
     // The pond fills in once its shoreline is well into view, which works on
     // any screen height even though little page remains below it.
