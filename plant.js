@@ -1,4 +1,4 @@
-// Paints the page in an oil-painting style: a sunrise sky, a tree canopy, a
+// Draws the page scenery: a sunrise sky, a tree canopy, a
 // vine that grows down the left as you scroll (leaves and blossoms opening
 // along it), and a water-lily pond at the bottom.
 (function () {
@@ -7,6 +7,9 @@
   const stemSvg = wrap.querySelector('svg');
   const svg = document.querySelector('.plant');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // The scene is drawn plainly by default; ?painted shows the older
+  // oil-painting textures.
+  const CLEAN = !new URLSearchParams(location.search).has('painted');
 
   const C = {
     stem: '#3f5530', stemHi: '#6f8a4c',
@@ -161,8 +164,8 @@
 
   // Sky colours from the top of the page down to the horizon glow.
   const SKY = [
-    [0, [18, 24, 48]], [.22, [36, 40, 82]], [.42, [78, 56, 108]],
-    [.58, [150, 82, 118]], [.7, [212, 120, 104]], [.8, [236, 164, 102]], [.88, [244, 202, 128]],
+    [0, [15, 20, 40]], [.22, [30, 34, 69]], [.42, [66, 47, 91]],
+    [.58, [126, 69, 99]], [.7, [178, 101, 87]], [.8, [198, 138, 86]], [.88, [205, 170, 108]],
   ];
   const skyAt = (t) => {
     for (let i = 1; i < SKY.length; i++) {
@@ -206,7 +209,8 @@
     const xOf = (y) => x0 + bend(y - y0) + kink(y - y0);
     // Phones get the same scene without the brush-texture filter, which some
     // mobile browsers (notably Safari) fail to draw over large areas.
-    const FW = narrow ? '' : ' filter="url(#paint-water)"', FP = narrow ? '' : ' filter="url(#paint)"';
+    const plain = narrow || CLEAN;
+    const FW = plain ? '' : ' filter="url(#paint-water)"', FP = plain ? '' : ' filter="url(#paint)"';
     // Sky geometry, in page coordinates.
     const hero = document.querySelector('.hero');
     const heroBottom = hero.getBoundingClientRect().bottom + scrollY;
@@ -229,14 +233,14 @@
     d += ` L${xOf(y1).toFixed(1)} ${y1.toFixed(1)}`;
     stemSvg.setAttribute('width', narrow ? 70 : 190);
     stemSvg.setAttribute('height', y1 + 40);
-    stemSvg.innerHTML = DEFS + `<g filter="url(#paint)">${st(d, C.vine, 2.8)}</g>`;
+    stemSvg.innerHTML = DEFS + `<g${FP}>${st(d, C.vine, 2.8)}</g>`;
 
     // Leaves and blossoms along it, each opening as you scroll to it.
     const out = [];
     nodes = [];
     const R4 = rng(44);
     const add = (y, ox, oy, inner) => {
-      out.push(`<g class="node" style="transform-origin:${ox.toFixed(1)}px ${oy.toFixed(1)}px"><g filter="url(#paint)">${inner}</g></g>`);
+      out.push(`<g class="node" style="transform-origin:${ox.toFixed(1)}px ${oy.toFixed(1)}px"><g${FP}>${inner}</g></g>`);
       nodes.push(y);
     };
     const leafG = (x, y, ang, k) =>
@@ -281,9 +285,9 @@
       const about = at('#about'), work = at('#work'), els = at('#elsewhere'), contact = at('#contact');
       const pondTop = mTop + pondY;
       const stops = [
-        ['#f3c97f', 0], ['#f2c27a', about], ['#eba06a', work],
-        ['#cf7676', els - 50], ['#8a5482', els + 45], ['#4a3a6a', contact],
-        ['#1d2340', pondTop], ['#141a30', pondTop + PH],
+        ['#d9aa62', 0], ['#d6a058', about], ['#cc8650', work],
+        ['#b8686a', els - 50], ['#6e4268', els + 45], ['#382c54', contact],
+        ['#1a1f3a', pondTop], ['#141a30', pondTop + PH],
       ];
       document.documentElement.style.background =
         `#141a30 linear-gradient(to bottom, ${stops.map(([c, y]) => `${c} ${Math.round(y)}px`).join(', ')}) no-repeat top / 100% ${Math.round(pondTop + PH)}px`;
@@ -305,6 +309,7 @@
         <linearGradient id="sky-base" x1="0" y1="0" x2="0" y2="1">
           ${SKY.map(([o, c]) => `<stop offset="${o / .88 * .8}" stop-color="${rgb(c)}"/>`).join('')}
         </linearGradient>
+        <filter id="soft" x="-20%" y="-200%" width="140%" height="500%"><feGaussianBlur stdDeviation="6"/></filter>
         <linearGradient id="sky-shade" x1="0" y1="0" x2="1" y2="0">
           <stop offset="0" stop-color="#12142a" stop-opacity=".62"/>
           <stop offset="${narrow ? .62 : .42}" stop-color="#12142a" stop-opacity="${narrow ? .5 : .4}"/>
@@ -314,7 +319,7 @@
       const paint = [];
       paint.push(`<rect width="${PW}" height="${SH}" fill="url(#sky-base)"/>`);
       // Horizontal brushstrokes; warm colours gather toward the sun.
-      const n = Math.round(PW * SH / (narrow ? 700 : 820));
+      const n = CLEAN ? 0 : Math.round(PW * SH / (narrow ? 700 : 820));
       for (let i = 0; i < n; i++) {
         const X = R2() * PW, Y = R2() * SH, t = Math.min(.95, Math.max(0, Y / horizon * .78 + (R2() - .5) * .06));
         const near = 1 - Math.min(1, Math.abs(X - sunX) / (PW * .7));
@@ -325,6 +330,11 @@
       // Clouds: long low wisps, lit pink and gold from below.
       const clouds = narrow ? 5 : 9;
       for (let c = 0; c < clouds; c++) {
+        if (CLEAN) {                       // a soft, plain cloud
+          const cx = R2() * PW, cy = SH * (.2 + R2() * .42), w = (narrow ? 90 : 160) + R2() * 220;
+          paint.push(`<ellipse cx="${cx.toFixed(0)}" cy="${cy.toFixed(0)}" rx="${(w / 2).toFixed(0)}" ry="${(6 + R2() * 6).toFixed(0)}" fill="${rgb(skyAt(Math.min(.92, cy / horizon * .78 + .2)), 1.1)}" opacity=".45" filter="url(#soft)"/>`);
+          continue;
+        }
         const cx = R2() * PW, cy = SH * (.2 + R2() * .42), w = (narrow ? 90 : 160) + R2() * 220;
         const t = cy / horizon * .78;
         for (let j = 0; j < 9; j++) {
@@ -339,13 +349,13 @@
         `<circle cx="${sunX}" cy="${horizon}" r="${sunR}" fill="#ffdc8c"/>` +
         `<circle cx="${sunX}" cy="${horizon}" r="${sunR * .7}" fill="#fff0c2" opacity=".8"/>`;
       let sun = '', disc2 = '';
-      for (let j = 0; j < 26; j++) {
+      for (let j = 0; j < (CLEAN ? 0 : 26); j++) {
         const a = R2() * Math.PI * 2, rr = R2() * sunR * .85;
         disc2 += st(`M${(sunX + Math.cos(a) * rr - 6).toFixed(0)} ${(horizon + Math.sin(a) * rr).toFixed(0)} h ${(6 + R2() * 12).toFixed(0)}`,
           R2() < .5 ? '#fff6d8' : '#ffd27a', (2 + R2() * 3).toFixed(1), 'opacity=".85"');
       }
       // Sunlight streaked across the horizon.
-      for (let j = 0; j < (narrow ? 14 : 26); j++) {
+      for (let j = 0; j < (CLEAN ? 0 : narrow ? 14 : 26); j++) {
         const yy = horizon + (R2() - .3) * 34, len = 60 + R2() * 240, xx = sunX + (R2() - .5) * PW * .7;
         sun += st(`M${(xx - len / 2).toFixed(0)} ${yy.toFixed(0)} h ${len.toFixed(0)}`, R2() < .5 ? '#f8d08a' : '#f0a271',
           (2 + R2() * 4).toFixed(1), `opacity="${(.35 + R2() * .4).toFixed(2)}"`);
@@ -475,8 +485,8 @@
 
       canopy.setAttribute('width', PW);
       canopy.setAttribute('height', Math.ceil(maxLen + 40));
-      canopy.innerHTML = `<g filter="url(#paint)">${vines.join('')}</g>` +
-        `<g class="bark" filter="url(#paint)">${bark.join('')}</g><g filter="url(#paint)">${leaves.join('')}</g>`;
+      canopy.innerHTML = `<g${FP}>${vines.join('')}</g>` +
+        `<g class="bark"${FP}>${bark.join('')}</g><g${FP}>${leaves.join('')}</g>`;
       requestAnimationFrame(() => canopy.classList.add('grown'));
     }
 
@@ -488,9 +498,11 @@
       shore += ` L${X} ${(26 + 10 * Math.sin(X / 140) + 6 * Math.sin(X / 47 + 2)).toFixed(1)}`;
     }
     shore += ` L${PW + 10} ${PH} Z`;
-    water.push(p(shore, '#142840'));
+    water.push(CLEAN
+      ? `<defs><linearGradient id="water-grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b4d73"/><stop offset="1" stop-color="#142840"/></linearGradient></defs>` + p(shore, 'url(#water-grad)')
+      : p(shore, '#142840'));
     const blues = ['#16304a', '#203f5f', '#2b4d73', '#3f6a96', '#5b86b3', '#8fb0d2'];
-    const strokes = Math.round(PW * PH / (narrow ? 650 : 900));
+    const strokes = CLEAN ? 0 : Math.round(PW * PH / (narrow ? 650 : 900));
     for (let i = 0; i < strokes; i++) {
       const X = R() * PW, Y = 34 + R() * (PH - 34), len = 14 + R() * 60;
       const depth = Y / PH, c = blues[Math.min(5, Math.floor(R() * 4 + (1 - depth) * 1.6 + (R() < .08 ? 2 : 0)))];

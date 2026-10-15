@@ -135,8 +135,8 @@ body { position: relative; }
 
 /* ---------- Sunset sections: dark ink while the background is light ---------- */
 #about, #work {
-  --text: #2b1d26; --muted: #4f3b42; --accent: #5b3424;
-  --line: rgba(43, 29, 38, .2); --sage: rgba(91, 52, 36, .45); --tag: rgba(91, 52, 36, .1);
+  --text: #21141b; --muted: #34242b; --accent: #47271b;
+  --line: rgba(33, 20, 27, .25); --sage: rgba(71, 39, 27, .5); --tag: rgba(71, 39, 27, .12);
   color: var(--text);
 }
 #elsewhere { --surface: rgba(20, 16, 36, .28); --line: rgba(236, 231, 218, .16); }
